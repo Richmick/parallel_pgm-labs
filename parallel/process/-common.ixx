@@ -18,7 +18,8 @@ namespace parallel
 			named_tube,
 			shared_memory,
 			shared_deque,
-			system_messages
+			system_messages,
+			named_events
 		};
 		export enum class notify_policy
 		{

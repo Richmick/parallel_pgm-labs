@@ -55,6 +55,14 @@ namespace winapi
 		{
 			return std::move(read_);
 		}
+		winapi::handle_t get_write() noexcept
+		{
+			return write_.get();
+		}
+		winapi::handle_t get_read() noexcept
+		{
+			return read_.get();
+		}
 		std::size_t write_available(char* data, std::size_t len)
 		{
 			dword written = 0;
