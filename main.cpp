@@ -5,9 +5,14 @@ import <vector>;
 
 import main.task_1;
 import main.task_2;
+import os.memory;
+import <memory>;
 
 int main(int argc, char** argv)
 {
+	os::shared_mem mem{new std::byte[(1024)], 1024, std::default_delete< std::byte[] >{}};
+	mem.at< int >(0x00) = 10;
+	std::println("{}", (int)(mem->*0));
 	constexpr char dispatch_thread_key[] = "--thread-main=";
 	constexpr char dispatch_process_key[] = "--process-main=";
 	if (argc < 2)

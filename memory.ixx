@@ -7,7 +7,7 @@ import <cstddef>;
 
 namespace os
 {
-	template< class T >
+	export template< class T >
 	struct offset_ptr
 	{
 		constexpr inline offset_ptr& operator++() & noexcept
@@ -31,32 +31,32 @@ namespace os
 			return result;
 		}
 
-		constexpr inline offset_ptr& operator+=(size_t i) const noexcept
+		constexpr inline offset_ptr& operator+=(size_t i) const & noexcept
 		{
 			offset_ += i * sizeof(T);
 			return *this;
 		}
-		constexpr inline offset_ptr operator+(size_t i) & noexcept
+		constexpr inline offset_ptr operator+(size_t i) noexcept
 		{
 			offset_ptr result = *this;
 			operator+=(i);
 			return result;
 		}
-		constexpr inline offset_ptr& operator-=(size_t i) const noexcept
+		constexpr inline offset_ptr& operator-=(size_t i) const & noexcept
 		{
 			offset_ -= i * sizeof(T);
 			return *this;
 		}
 
-		constexpr inline offset_ptr operator-(size_t i) & noexcept
+		constexpr inline offset_ptr operator-(size_t i) noexcept
 		{
 			offset_ptr result = *this;
 			operator-=(i);
 			return result;
 		}
-		constexpr inline ptrdiff_t operator-(offset_ptr left) & noexcept
+		constexpr inline ptrdiff_t operator-(offset_ptr rhs) noexcept
 		{
-			return offset_ - left.offset_;
+			return rhs.offset_ - offset_;
 		}
 
 		template< class U >
@@ -72,13 +72,21 @@ namespace os
 		size_t offset_ = 0;
 	};
 
-	template< class D >
+	export template< class D = std::default_delete< std::byte[] > >
 	class shared_mem
 	{
 	public:
 		shared_mem() noexcept = default;
 		shared_mem(std::unique_ptr< std::byte[], D > ptr, std::size_t len):
 			data_(std::move(ptr)),
+			size_(len)
+		{}
+		shared_mem(void* ptr, std::size_t len):
+			data_(reinterpret_cast< std::byte* >(ptr)),
+			size_(len)
+		{}
+		shared_mem(void* ptr, std::size_t len, D deleter):
+			data_(reinterpret_cast< std::byte* >(ptr), deleter),
 			size_(len)
 		{}
 
@@ -88,18 +96,18 @@ namespace os
 			return operator->*< R >(static_cast< std::size_t >(p));
 		}
 		template< class R >
-		constexpr inline R& operator->*(offset_ptr< R > p) const &
+		constexpr inline const R& operator->*(offset_ptr< R > p) const &
 		{
 			return operator->*< R >(static_cast< std::size_t >(p));
 		}
 
-		template< class R >
+		template< class R = std::byte >
 		constexpr inline R& operator->*(std::size_t offset) &
 		{
 			return *reinterpret_cast< R* >(data_.get() + offset);
 		}
-		template< class R >
-		constexpr inline R& operator->*(std::size_t offset) const &
+		template< class R = std::byte >
+		constexpr inline const R& operator->*(std::size_t offset) const &
 		{
 			return *reinterpret_cast< R* >(data_.get() + offset);
 		}
@@ -109,7 +117,7 @@ namespace os
 			return at< R >(static_cast< std::size_t >(p));
 		}
 		template< class R >
-		constexpr inline R& at(offset_ptr< R > p) const &
+		constexpr inline const R& at(offset_ptr< R > p) const &
 		{
 			return at< R >(static_cast< std::size_t >(p));
 		}
@@ -120,16 +128,16 @@ namespace os
 			{
 				throw std::out_of_range("shared mem object offset is out of bounds");
 			}
-			return operator[]< R >(offset);
+			return operator->*< R >(offset);
 		}
 		template< class R >
-		constexpr inline R& at(size_t offset) const &
+		constexpr inline const R& at(size_t offset) const &
 		{
 			if (offset + sizeof(R) >= size_)
 			{
 				throw std::out_of_range("shared mem object offset is out of bounds");
 			}
-			return operator[]< R >(offset);
+			return operator->*< R >(offset);
 		}
 		constexpr inline std::byte* get() &
 		{
