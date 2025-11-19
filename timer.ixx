@@ -1,0 +1,24 @@
+export module timer;
+
+import <chrono>;
+
+namespace chrono
+{
+	export class timer
+	{
+	public:
+		timer() noexcept:
+			start_(std::chrono::high_resolution_clock::now())
+		{}
+		void reset() noexcept
+		{
+			start_ = std::chrono::high_resolution_clock::now();
+		}
+		std::chrono::nanoseconds time_since_epoch() noexcept
+		{
+			return std::chrono::high_resolution_clock::now() - start_;
+		}
+	private:
+		std::chrono::high_resolution_clock::time_point start_;
+	};
+}
