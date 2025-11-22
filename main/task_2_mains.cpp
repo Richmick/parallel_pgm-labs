@@ -9,6 +9,7 @@ import <print>;
 import square;
 import parallel.thread;
 import parallel.process;
+import main.dispatch;
 
 namespace mains
 {
@@ -35,23 +36,23 @@ namespace mains
 	}
 }
 
-int mains::task2::pipe_controller(int argc, char** argv)
+int mains::task2::pipe(int argc, char** argv)
 {
 	using namespace parallel::process;
 	return common_commander< windows_manager< control_policy::anonymous_tube,
 					notify_policy::await_thread > >(argc, argv);
 }
-int mains::task2::common_executor(int argc, char** argv)
+int mains::task2::stdin_executor(int argc, char** argv)
 {
-	if ((argc < 3) || (std::string_view{argv[1]} != executor_mark))
+	if (argc < 2)
 	{
-		std::println(std::cerr, "executor was started with inappropriate arguments");
+		std::println(std::cerr, "executor was started without seed");
 		return 1;
 	}
 	std::uint64_t seed = 0;
 	try
 	{
-		seed = std::stoull(argv[2]);
+		seed = std::stoull(argv[1]);
 	}
 	catch (const std::exception& e)
 	{
@@ -85,11 +86,6 @@ int mains::task2::common_executor(int argc, char** argv)
 template< class Manager >
 int mains::task2::common_commander(int argc, char** argv)
 {
-	if ((argc >= 2) && (std::string_view{argv[1]} == executor_mark))
-	{
-		return common_executor(argc, argv);
-	}
-
 	using parser_t = user_commands_parser< Manager >;
 	const std::map< std::string, void(parser_t::*)(std::istream&) > commands_set = {
 				{"spawn", &parser_t::add_process},
@@ -133,7 +129,7 @@ void mains::task2::user_commands_parser< Manager >::add_process(std::istream& in
 	std::uint64_t seed = 0;
 	in >> name >> seed;
 	if (!man.create_process(std::move(name), program,
-				std::string{program} + ' ' + executor_mark + ' ' + std::to_string(seed)))
+				std::string{program} + ' ' + mains::dispatcher::executor_mark + ' ' + std::to_string(seed)))
 	{
 		std::println(err, "process with the same name already exists");
 	}

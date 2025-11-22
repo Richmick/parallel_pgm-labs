@@ -6,7 +6,10 @@ import <array>;
 import <utility>;
 import <sstream>;
 import <exception>;
+import <system_error>;
 // import std;
+import <print>;
+import <iostream>;
 
 namespace parallel
 {
@@ -19,11 +22,12 @@ namespace parallel
 			shared_memory,
 			shared_deque,
 			system_messages,
-			named_events
+			copy_request
 		};
 		export enum class notify_policy
 		{
 			sysmsg,
+			named_events,
 			await_thread
 		};
 
@@ -33,11 +37,23 @@ namespace parallel
 		public:
 			pipe_buf(Pipe&& p):
 				std::stringbuf(std::ios_base::in | std::ios_base::out),
-				pipe(std::move(p))
+				pipe_(std::move(p))
 			{}
 			pipe_buf(pipe_buf&&) noexcept = default;
 			pipe_buf& operator=(pipe_buf&&) noexcept = default;
 			virtual ~pipe_buf() = default;
+
+			pipe_buf* open(Pipe p)
+			{
+				pipe_ = std::move(p);
+				return this;
+			}
+			pipe_buf* close()
+			{
+				pipe_.release_read();
+				pipe_.release_write();
+				return this;
+			}
 
 			int sync() override
 			{
@@ -47,30 +63,30 @@ namespace parallel
 					return buf_res;
 				}
 
-				if (pipe.can_read())
+				if (pipe_.can_read())
 				{
 					std::size_t len = epptr() - pptr();
 					if (len == 0)
 					{
 						constexpr size_t default_chunk = 1024;
 						char buf[default_chunk];
-						xsputn(buf, pipe.read_available(buf, default_chunk));
+						xsputn(buf, pipe_.read_available(buf, default_chunk));
 					}
 					else
 					{
 						std::size_t len = epptr() - pptr();
-						pbump((int)pipe.read_available(pptr(), (int)len));
+						pbump((int)pipe_.read_available(pptr(), (int)len));
 					}
 				}
-				else if (pipe.can_write())
+				else if (pipe_.can_write())
 				{
 					std::size_t len = egptr() - gptr();
-					gbump((int)pipe.write_available(gptr(), (int)len));
+					gbump((int)pipe_.write_available(gptr(), (int)len));
 				}
 				return 0;
 			}
 		protected:
-			Pipe pipe;
+			Pipe pipe_;
 		};
 		export template< class Pipe >
 		class pipe_pusher
@@ -103,18 +119,26 @@ namespace parallel
 			{
 				while (continue_running)
 				{
-					// add WaitForMultipleObject if count < 64 (macro limit)
 					for (auto [read, write]: buffers)
 					{
+						bool readed = false;
 						try
 						{
 							read->sync();
+							readed = true;
 							write->sync();
-							//std::cout << read->str();
+							std::println("{}", read->str());
 						}
-						catch (...)
+						catch (const std::system_error& e)
 						{
-							// close pipes
+							if (e.code() == std::errc::broken_pipe)
+							{
+								(readed ? write : read)->close();
+							}
+						}
+						catch (const std::exception& e)
+						{
+							std::println(std::cerr, "pusher had cought an error: {}", e.what());
 						}
 					}
 					std::this_thread::yield();
