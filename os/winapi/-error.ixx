@@ -31,6 +31,14 @@ namespace winapi
 		{
 			return {static_cast< int >(code_), std::system_category()};
 		}
+		std::system_error exception(const char* msg)
+		{
+			return {static_cast< int >(code_), std::system_category(), msg};
+		}
+		std::system_error exception(const std::string& msg)
+		{
+			return {static_cast< int >(code_), std::system_category(), msg};
+		}
 		dword code() const noexcept
 		{
 			return code_;

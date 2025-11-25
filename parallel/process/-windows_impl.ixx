@@ -14,6 +14,7 @@ import <string_view>;
 import <iostream>;
 import <map>;
 import <ranges>;
+import <chrono>;
 
 import os.winapi;
 import :common;
@@ -33,13 +34,15 @@ namespace parallel
 		class windows_manager
 		{
 		public:
+			static constexpr inline std::chrono::milliseconds close_lag{100};
+
 			~windows_manager()
 			{
 				for (const auto& [name, info]: processes_)
 				{
 					try
 					{
-						kill(name);
+						kill(name, close_lag);
 					}
 					catch(...)
 					{}
@@ -76,26 +79,33 @@ namespace parallel
 				if (!CreateProcessA(executable.data(), params.data(), nullptr, nullptr, true,
 							NORMAL_PRIORITY_CLASS, nullptr, nullptr, &startup_info, &proc_info))
 				{
-					throw winapi::error::last().exception();
+					throw winapi::error::last().exception("failed to create process");
 				}
 				winapi::unique_handle{proc_info.hThread};
 				winapi::unique_handle created_proc{proc_info.hProcess};
 				auto proc = processes_.try_emplace(std::move(name), std::move(created_proc),
 								pipe_buf< winapi::pipe >{std::move(results)},
 								pipe_buf< winapi::pipe >{std::move(commands)});
-				proc.first->second.out << "hello\n";
+				//proc.first->second.out << "hello\n";
 				//proc.first->second.write_buf.sync();
 				pusher_.append(&proc.first->second.read_buf, &proc.first->second.write_buf);
 				return true;
 			}
-			void kill(const std::string& name)
+			bool kill(const std::string& name, std::chrono::milliseconds close_time)
 			{
-				winapi::unique_handle& proc = processes_.at(name).process_handle;
-				if (!TerminateProcess(proc.get(), -1))
+				auto& proc = processes_.at(name);
+				proc.write_buf.close();
+				winapi::dword res = WaitForSingleObject(proc.process_handle.get(), static_cast< int >(close_time.count()));
+				if (res == WAIT_OBJECT_0)
 				{
-					throw winapi::error::last().exception();
+					return false;
 				}
-				proc.close();
+				if (!TerminateProcess(proc.process_handle.get(), -1))
+				{
+					throw winapi::error::last().exception("failed to terminate process");
+				}
+				proc.process_handle.close();
+				return true;
 			}
 			bool alive(const std::string& name)
 			{
@@ -107,7 +117,7 @@ namespace parallel
 				winapi::dword res = WaitForSingleObject(proc.get(), 0);
 				if (res == WAIT_FAILED)
 				{
-					throw winapi::error::last().exception();
+					throw winapi::error::last().exception("failed to wait for process");
 				}
 				return res == WAIT_TIMEOUT;
 			}
@@ -116,10 +126,8 @@ namespace parallel
 				return std::views::keys(processes_);
 			}
 		private:
-			struct empty
-			{};
-			std::conditional_t< has_pipe, pipe_pusher< winapi::pipe >, empty > pusher_;
-			std::map< std::string, process_info > processes_;
+			pipe_pusher< winapi::pipe > pusher_;
+			std::map< std::string, windows_pipe_data > processes_;
 		};
 	}
 }

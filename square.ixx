@@ -9,6 +9,7 @@ import <concepts>;
 import <variant>;
 import <vector>;
 import <algorithm>;
+import <format>;
 
 namespace square
 {
@@ -27,6 +28,7 @@ namespace square
 		point_t center;
 	};
 	export constexpr float square_of(rect_t rect);
+	export constexpr rect_t merge_frames(rect_t lhs, rect_t rhs);
 
 	export constexpr float square_tr(std::uint64_t entries, std::uint64_t nchecks, rect_t frame);
 
@@ -43,6 +45,23 @@ namespace square
 	export template< class M, std::predicate< square::point_t > P >
 	std::uint64_t count_entries(M thread_manager, settings set, P pred);
 
+	export struct get_frame
+	{
+		static constexpr rect_t operator()(const rect_t& shape)
+		{
+			return shape;
+		}
+		static constexpr rect_t operator()(const circle_t& shape)
+		{
+			return {{shape.center.x - shape.radius, shape.center.y - shape.radius},
+						{shape.center.x + shape.radius, shape.center.y + shape.radius}};
+		}
+		template< class... Shapes >
+		static constexpr rect_t operator()(const std::variant< Shapes... >& shape)
+		{
+			return std::visit(get_frame{}, shape);
+		}
+	};
 	export struct is_inside
 	{
 		point_t point;
@@ -88,6 +107,22 @@ namespace square
 		}
 	};
 }
+export template<>
+struct std::formatter< square::point_t >: std::formatter< std::string >
+{
+	auto format(square::point_t p, std::format_context& ctx) const
+	{
+		return std::formatter< std::string >::format(std::format("{{{}, {}}}", p.x, p.y), ctx);
+	}
+};
+export template<>
+struct std::formatter< square::rect_t >: std::formatter< std::string >
+{
+	auto format(square::rect_t r, std::format_context& ctx) const
+	{
+		return std::formatter< std::string >::format(std::format("{{{}, {}}}", r.p1, r.p2), ctx);
+	}
+};
 
 constexpr float square::distance_sqr(point_t p1, point_t p2)
 {
@@ -100,6 +135,11 @@ constexpr float square::square_of(rect_t rect)
 	rect.p1.x -= rect.p2.x;
 	rect.p1.y -= rect.p2.y;
 	return rect.p1.x * rect.p1.y;
+}
+constexpr square::rect_t square::merge_frames(rect_t lhs, rect_t rhs)
+{
+	return {{std::min(lhs.p1.x, rhs.p1.x), std::min(lhs.p1.y, rhs.p1.y)},
+				{std::max(lhs.p2.x, rhs.p2.x), std::max(lhs.p2.y, rhs.p2.y)}};
 }
 constexpr float square::square_tr(std::uint64_t entries, std::uint64_t nchecks, rect_t frame)
 {

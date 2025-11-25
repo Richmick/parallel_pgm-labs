@@ -1,13 +1,10 @@
 module main.task_2;
 
 import <string_view>;
-import <string>;
-import <map>;
 import <iostream>;
 import <print>;
 
 import square;
-import parallel.thread;
 import parallel.process;
 import main.dispatch;
 
@@ -17,22 +14,6 @@ namespace mains
 	{
 		template< class Manager >
 		int common_commander(int argc, char** argv);
-		template< class Manager >
-		struct user_commands_parser
-		{
-			std::ostream& out;
-			std::ostream& err;
-			const char* program;
-
-			std::map< std::string, square::composition::shape > shapes;
-			std::map< std::string, square::composition > compositions;
-			Manager man;
-
-			void add_process(std::istream& in);
-			void print_alive(std::istream& in);
-			void kill(std::istream& in);
-		};
-		
 	}
 }
 
@@ -42,47 +23,6 @@ int mains::task2::pipe(int argc, char** argv)
 	return common_commander< windows_manager< control_policy::anonymous_tube,
 					notify_policy::await_thread > >(argc, argv);
 }
-int mains::task2::stdin_executor(int argc, char** argv)
-{
-	if (argc < 2)
-	{
-		std::println(std::cerr, "executor was started without seed");
-		return 1;
-	}
-	std::uint64_t seed = 0;
-	try
-	{
-		seed = std::stoull(argv[1]);
-	}
-	catch (const std::exception& e)
-	{
-		std::println(std::cerr, "executor failed to parse seed: {}", e.what());
-		return 1;
-	}
-
-	square::composition pred;
-	{
-		pred.shapes.push_back(square::circle_t{1.0f, {0.0f, 0.0f}});
-		square::settings set = {{{-1, -1}, {1, 1}}, 9, 100000000ULL, seed};
-		try
-		{
-			std::uint64_t entries =
-					square::count_entries(parallel::thread::std_manager< std::uint64_t >(set.nthreads - 1), set, pred);
-			std::println("{:.4f}", square::square_tr(entries, set.whole_cycles, set.frame));
-		}
-		catch (const std::system_error& err)
-		{
-			std::println(std::cerr, "os error: {}", err.what());
-			return 2;
-		}
-		pred.shapes.resize(0);
-	}
-
-	char c;
-	while (std::cin >> c)
-	{}
-	return 0;
-}
 template< class Manager >
 int mains::task2::common_commander(int argc, char** argv)
 {
@@ -90,7 +30,9 @@ int mains::task2::common_commander(int argc, char** argv)
 	const std::map< std::string, void(parser_t::*)(std::istream&) > commands_set = {
 				{"spawn", &parser_t::add_process},
 				{"alive", &parser_t::print_alive},
-				{"kill", &parser_t::kill}
+				{"kill", &parser_t::kill},
+				{"frame", &parser_t::get_frame},
+				{"frameset", &parser_t::get_set_frame}
 			};
 	parser_t parser{std::cout, std::cerr, argv[0]};
 	std::string command;
@@ -154,7 +96,12 @@ void mains::task2::user_commands_parser< Manager >::print_alive(std::istream& in
 template< class Manager >
 void mains::task2::user_commands_parser< Manager >::kill(std::istream& in)
 {
+	using namespace std::chrono_literals;
+
 	std::string name;
 	in >> name;
-	man.kill(name);
+	if (man.kill(name, kill_ping))
+	{
+		std::println(std::cerr, "hard kill \"{}\"", name);
+	}
 }

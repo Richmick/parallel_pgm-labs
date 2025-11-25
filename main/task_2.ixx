@@ -1,5 +1,8 @@
 export module main.task_2;
 
+export import :common;
+export import :shapes_cmds;
+
 export namespace mains
 {
 	namespace task2
@@ -9,5 +12,6 @@ export namespace mains
 		int shared_mem(int argc, char** argv);
 
 		int stdin_executor(int argc, char** argv);
+		int event_raw_executor(int argc, char** argv);
 	}
 }

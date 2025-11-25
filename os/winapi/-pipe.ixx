@@ -34,7 +34,7 @@ namespace winapi
 					};
 			if (!CreatePipe(&read_, &write_, &attr, hint_size))
 			{
-				throw error::last().exception();
+				throw error::last().exception("failed to create pipe");
 			}
 		}
 		explicit pipe(std::string name);
@@ -68,7 +68,7 @@ namespace winapi
 			dword written = 0;
 			if (!WriteFile(write_.get(), data, static_cast<dword>(len), &written, nullptr))
 			{
-				throw error::last().exception();
+				throw error::last().exception("failed to write to pipe");
 			}
 			return written;
 		}
@@ -77,7 +77,7 @@ namespace winapi
 			dword was_read = 0;
 			if (!ReadFile(read_.get(), data, static_cast< dword >(len), &was_read, nullptr))
 			{
-				throw error::last().exception();
+				throw error::last().exception("failed to read from file");
 			}
 			return was_read;
 		}

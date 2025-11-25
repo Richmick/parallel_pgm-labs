@@ -19,14 +19,13 @@ namespace parallel
 		{
 			anonymous_tube,
 			named_tube,
-			shared_memory,
-			shared_deque,
 			system_messages,
 			copy_request
 		};
 		export enum class notify_policy
 		{
 			sysmsg,
+			shared_memory,
 			named_events,
 			await_thread
 		};
@@ -127,7 +126,7 @@ namespace parallel
 							read->sync();
 							readed = true;
 							write->sync();
-							std::println("{}", read->str());
+							//std::println("{}", read->str());
 						}
 						catch (const std::system_error& e)
 						{

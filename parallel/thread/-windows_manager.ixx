@@ -61,7 +61,7 @@ public:
 							data.get(), 0, nullptr)));
 		if (!thread)
 		{
-			throw winapi::error::last().exception();
+			throw winapi::error::last().exception("failed to start thread");
 		}
 		threads_.push_back(std::move(thread));
 		data.release();
@@ -71,7 +71,7 @@ public:
 		std::uint32_t code = WaitForSingleObject(threads_[idx].get(), ~std::uint32_t{0});
 		if (code != WAIT_OBJECT_0)
 		{
-			throw winapi::error::last().exception();
+			throw winapi::error::last().exception("failed to await thread");
 		}
 		return results_[idx];
 	}
