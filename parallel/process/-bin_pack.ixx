@@ -5,7 +5,7 @@ import <type_traits>;
 
 namespace parallel::process
 {
-	export template< class T > requires(std::is_trivial_destructible_v< T >)
+	export template< class T > requires(std::is_trivially_destructible_v< T >)
 	struct bin_pack
 	{
 		T& wrapped;

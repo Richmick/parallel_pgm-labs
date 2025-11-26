@@ -7,7 +7,7 @@ import <string>;
 import <string_view>;
 
 import main.task_1;
-import main.task_2;
+//import main.task_2;
 
 namespace mains
 {
@@ -36,8 +36,8 @@ namespace mains
 					{task1::os_dependent, false, thread_main_mark, "os"},
 					{task1::algorithm, false, thread_main_mark, "algorithm"},
 
-					{task2::pipe, false, process_main_mark, "pipe"},
-					{task2::stdin_executor, true, process_main_mark, "pipe"}
+					/*{task2::pipe, false, process_main_mark, "pipe"},
+					{task2::stdin_executor, true, process_main_mark, "pipe"}*/
 					//{task2::shared_mem, false, process_main_mark, "shared_mem", shared_mem_flags},
 				};
 

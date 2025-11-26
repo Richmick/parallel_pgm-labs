@@ -8,11 +8,12 @@ import square;
 
 namespace mains::task2
 {
-	template< class Manager >
-	struct user_commands_parser
+	export template< class Manager >
+	struct user_context
 	{
 		static constexpr inline std::chrono::milliseconds kill_ping{200};
 
+		std::istream& in;
 		std::ostream& out;
 		std::ostream& err;
 		const char* program;
@@ -20,11 +21,5 @@ namespace mains::task2
 		std::map< std::string, square::composition::shape > shapes;
 		std::map< std::string, square::composition > compositions;
 		Manager man;
-
-		void add_process(std::istream& in);
-		void print_alive(std::istream& in);
-		void kill(std::istream& in);
-		void get_frame(std::istream& in);
-		void get_set_frame(std::istream& in);
 	};
 }

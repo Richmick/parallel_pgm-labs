@@ -26,15 +26,15 @@ int mains::task2::pipe(int argc, char** argv)
 template< class Manager >
 int mains::task2::common_commander(int argc, char** argv)
 {
-	using parser_t = user_commands_parser< Manager >;
-	const std::map< std::string, void(parser_t::*)(std::istream&) > commands_set = {
-				{"spawn", &parser_t::add_process},
-				{"alive", &parser_t::print_alive},
-				{"kill", &parser_t::kill},
-				{"frame", &parser_t::get_frame},
-				{"frameset", &parser_t::get_set_frame}
+	using parser_t = user_context< Manager >;
+	const std::map< std::string, void(*)(parser_t&) > commands_set = {
+				{"spawn", &add_process},
+				{"alive", &print_alive},
+				{"kill", &kill},
+				{"frame", &get_frame},
+				{"frameset", &get_set_frame}
 			};
-	parser_t parser{std::cout, std::cerr, argv[0]};
+	parser_t parser{std::cin, std::cout, std::cerr, argv[0]};
 	std::string command;
 	while (std::cin >> command)
 	{
@@ -47,7 +47,7 @@ int mains::task2::common_commander(int argc, char** argv)
 		try
 		{
 			std::cin.exceptions(std::ios_base::failbit);
-			(parser.*(pos->second))(std::cin);
+			(pos->second)(parser);
 		}
 		catch (const std::ios_base::failure&)
 		{
@@ -63,45 +63,4 @@ int mains::task2::common_commander(int argc, char** argv)
 		std::cin.exceptions(std::ios_base::goodbit);
 	}
 	return 0;
-}
-template< class Manager >
-void mains::task2::user_commands_parser< Manager >::add_process(std::istream& in)
-{
-	std::string name;
-	std::uint64_t seed = 0;
-	in >> name >> seed;
-	if (!man.create_process(std::move(name), program,
-				std::string{program} + ' ' + mains::dispatcher::executor_mark + ' ' + std::to_string(seed)))
-	{
-		std::println(err, "process with the same name already exists");
-	}
-}
-template< class Manager >
-void mains::task2::user_commands_parser< Manager >::print_alive(std::istream& in)
-{
-	size_t lives = 0;
-	for (const std::string& name : man.process_names())
-	{
-		if (man.alive(name))
-		{
-			lives++;
-			std::println("{}", name);
-		}
-	}
-	if (lives == 0)
-	{
-		std::println("noone alive");
-	}
-}
-template< class Manager >
-void mains::task2::user_commands_parser< Manager >::kill(std::istream& in)
-{
-	using namespace std::chrono_literals;
-
-	std::string name;
-	in >> name;
-	if (man.kill(name, kill_ping))
-	{
-		std::println(std::cerr, "hard kill \"{}\"", name);
-	}
 }
