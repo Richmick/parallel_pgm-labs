@@ -2,7 +2,7 @@ export module main.task_2:processes_control;
 
 import <print>;
 import <iostream>;
-import main.dispatch;
+import main.flags_parser;
 import :common;
 
 namespace mains::task2
@@ -14,7 +14,7 @@ namespace mains::task2
 		std::uint64_t seed = 0;
 		ctx.in >> name >> seed;
 		if (!ctx.man.create_process(std::move(name), ctx.program,
-					std::string{ctx.program} + ' ' + mains::dispatcher::executor_mark + ' ' + std::to_string(seed)))
+					std::string{ctx.program} + ' ' + ctx.dispatch_key + "-exec " + std::to_string(seed)))
 		{
 			std::println(ctx.err, "process with the same name already exists");
 		}

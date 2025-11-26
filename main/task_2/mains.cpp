@@ -6,25 +6,24 @@ import <print>;
 
 import square;
 import parallel.process;
-import main.dispatch;
 
 namespace mains
 {
 	namespace task2
 	{
 		template< class Manager >
-		int common_commander(int argc, char** argv);
+		int common_commander(int argc, const char*const* argv);
 	}
 }
 
-int mains::task2::pipe(int argc, char** argv)
+int mains::task2::pipe(int argc, const char*const* argv)
 {
 	using namespace parallel::process;
 	return common_commander< windows_manager< control_policy::anonymous_tube,
 					notify_policy::await_thread > >(argc, argv);
 }
 template< class Manager >
-int mains::task2::common_commander(int argc, char** argv)
+int mains::task2::common_commander(int argc, const char*const* argv)
 {
 	using parser_t = user_context< Manager >;
 	const std::map< std::string, void(*)(parser_t&) > commands_set = {
@@ -34,7 +33,7 @@ int mains::task2::common_commander(int argc, char** argv)
 				{"frame", &get_frame},
 				{"frameset", &get_set_frame}
 			};
-	parser_t parser{std::cin, std::cout, std::cerr, argv[0]};
+	parser_t parser{std::cin, std::cout, std::cerr, argv[0], argv[1]};
 	std::string command;
 	while (std::cin >> command)
 	{

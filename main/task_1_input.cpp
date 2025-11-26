@@ -4,7 +4,7 @@ import <istream>;
 import <stdexcept>;
 import <string>;
 
-void mains::task1::parse_argv(int argc, char** argv, square::settings& set)
+void mains::task1::parse_argv(int argc, const char*const* argv, square::settings& set)
 {
 	if ((argc < 2) || (argc > 3))
 	{

@@ -19,14 +19,14 @@ namespace mains
 	namespace task1
 	{
 		template< class Manager >
-		int common(int argc, char** argv);
+		int common(int argc, const char*const* argv);
 		struct random;
 		struct entry_generator;
 	}
 }
 
 template< class Manager >
-int mains::task1::common(int argc, char** argv)
+int mains::task1::common(int argc, const char*const* argv)
 {
 	square::settings set;
 	square::in_shape entry_pred{square::circle_t{0.0f, {0.0f, 0.0f}}};
@@ -53,19 +53,19 @@ int mains::task1::common(int argc, char** argv)
 	}
 	return 0;
 }
-int mains::task1::std_thread(int argc, char** argv)
+int mains::task1::std_thread(int argc, const char*const* argv)
 {
 	return common< parallel::thread::std_manager< std::uint64_t > >(argc, argv);
 }
-int mains::task1::future_thread(int argc, char** argv)
+int mains::task1::future_thread(int argc, const char*const* argv)
 {
 	return common< parallel::thread::future_manager< std::uint64_t > >(argc, argv);
 }
-int mains::task1::future_async(int argc, char** argv)
+int mains::task1::future_async(int argc, const char*const* argv)
 {
 	return common< parallel::thread::future_async_manager< std::uint64_t > >(argc, argv);
 }
-int mains::task1::os_dependent(int argc, char** argv)
+int mains::task1::os_dependent(int argc, const char*const* argv)
 {
 	return common< parallel::thread::os_manager< std::uint64_t > >(argc, argv);
 }
@@ -94,7 +94,7 @@ struct mains::task1::entry_generator
 		return predicate({x_distribution(random_engine.engine), y_distribution(random_engine.engine)});
 	}
 };
-int mains::task1::algorithm(int argc, char** argv)
+int mains::task1::algorithm(int argc, const char*const* argv)
 {
 #ifdef __cpp_lib_execution
 	square::settings set;

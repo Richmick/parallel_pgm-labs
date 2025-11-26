@@ -16,7 +16,8 @@ namespace mains::task2
 		std::istream& in;
 		std::ostream& out;
 		std::ostream& err;
-		const char* program;
+		const char* program = nullptr;
+		const char* dispatch_key = nullptr;
 
 		std::map< std::string, square::composition::shape > shapes;
 		std::map< std::string, square::composition > compositions;

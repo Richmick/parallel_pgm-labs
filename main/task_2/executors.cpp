@@ -8,7 +8,7 @@ import square;
 import parallel.thread;
 import main.dispatch;
 
-int mains::task2::stdin_executor(int argc, char** argv)
+int mains::task2::stdin_executor(int argc, const char*const* argv)
 {
 	//mains::dispatcher disp{argc, argv};
 	//auto event_p = disp.variables.at("--new-task-event"); // else no parallel tasks
