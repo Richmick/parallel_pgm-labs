@@ -35,7 +35,9 @@ int mains::task2::common_commander(int argc, const char*const* argv)
 				{"circle", &create_circle},
 				{"set", &create_set},
 				{"show", &show_figure},
-				{"showall", &show_shapes}
+				{"showall", &show_shapes},
+				{"showset", &show_set},
+				{"showallset", &show_sets}
 			};
 	parser_t parser{std::cin, std::cout, std::cerr, argv[0], argv[1]};
 	std::string command;

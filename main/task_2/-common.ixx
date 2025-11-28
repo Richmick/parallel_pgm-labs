@@ -4,6 +4,7 @@ import <chrono>;
 import <iosfwd>;
 import <string>;
 import <map>;
+import <set>;
 import square;
 
 namespace mains::task2
@@ -20,7 +21,7 @@ namespace mains::task2
 		const char* dispatch_key = nullptr;
 
 		std::map< std::string, square::composition::shape > shapes;
-		std::map< std::string, square::composition > compositions;
+		std::map< std::string, std::set< std::string > > compositions;
 		Manager man;
 	};
 }
