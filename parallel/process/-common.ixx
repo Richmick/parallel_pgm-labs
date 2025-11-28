@@ -10,6 +10,7 @@ import <system_error>;
 // import std;
 import <print>;
 import <iostream>;
+import <mutex>;
 
 namespace parallel
 {
@@ -79,6 +80,7 @@ namespace parallel
 				}
 				else if (pipe_.can_write())
 				{
+					underflow();
 					std::size_t len = egptr() - gptr();
 					gbump((int)pipe_.write_available(gptr(), (int)len));
 				}
@@ -88,11 +90,11 @@ namespace parallel
 			Pipe pipe_;
 		};
 		export template< class Pipe >
-		class pipe_pusher
+		class pipe_pusher: public std::mutex
 		{
 		public:
 			pipe_pusher():
-				thread_(waiter, std::ref(continue_running_), std::ref(buffers_))
+				thread_(waiter, std::ref(*this))
 			{}
 			pipe_pusher(const pipe_pusher&) = delete;
 			pipe_pusher(pipe_pusher&&) = delete;
@@ -114,11 +116,12 @@ namespace parallel
 			std::forward_list< std::array< pipe_buf< Pipe >*, 2 > > buffers_;
 			volatile bool continue_running_ = true;
 
-			static void waiter(volatile bool& continue_running, decltype(buffers_)& buffers)
+			static void waiter(pipe_pusher& pusher)
 			{
-				while (continue_running)
+				while (pusher.continue_running_)
 				{
-					for (auto [read, write]: buffers)
+					std::lock_guard guard{pusher};
+					for (auto [read, write]: pusher.buffers_)
 					{
 						bool readed = false;
 						try
@@ -126,7 +129,6 @@ namespace parallel
 							read->sync();
 							readed = true;
 							write->sync();
-							//std::println("{}", read->str());
 						}
 						catch (const std::system_error& e)
 						{

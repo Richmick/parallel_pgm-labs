@@ -22,6 +22,7 @@ namespace mains::task2
 
 		std::map< std::string, square::composition::shape > shapes;
 		std::map< std::string, std::set< std::string > > compositions;
+		std::map< std::string, std::string > tasks; // name:process
 		Manager man;
 	};
 }

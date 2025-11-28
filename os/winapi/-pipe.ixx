@@ -30,6 +30,7 @@ namespace winapi
 		{
 			SECURITY_ATTRIBUTES attr = {
 						.nLength = sizeof(SECURITY_ATTRIBUTES),
+						.lpSecurityDescriptor = nullptr,
 						.bInheritHandle = true
 					};
 			if (!CreatePipe(&read_, &write_, &attr, hint_size))
@@ -75,7 +76,7 @@ namespace winapi
 		std::size_t read_available(char* data, std::size_t len)
 		{
 			dword was_read = 0;
-			if (!ReadFile(read_.get(), data, static_cast< dword >(len), &was_read, nullptr))
+			if (!PeekNamedPipe(read_.get(), data, static_cast< dword >(len), &was_read, nullptr, nullptr))
 			{
 				throw error::last().exception("failed to read from file");
 			}

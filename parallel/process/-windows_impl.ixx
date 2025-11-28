@@ -18,6 +18,7 @@ import <chrono>;
 
 import os.winapi;
 import :common;
+import :streams;
 
 namespace parallel
 {
@@ -29,6 +30,8 @@ namespace parallel
 			pipe_buf< winapi::pipe > read_buf, write_buf;
 			std::istream in{&read_buf};
 			std::ostream out{&write_buf};
+			char_stream_wrapper wrapped_out{out};
+			//char_stream_wrapper wrapped_out{std::cout};
 		};
 		export template< control_policy ControlPol, notify_policy NotifyPol >
 		class windows_manager
@@ -86,8 +89,6 @@ namespace parallel
 				auto proc = processes_.try_emplace(std::move(name), std::move(created_proc),
 								pipe_buf< winapi::pipe >{std::move(results)},
 								pipe_buf< winapi::pipe >{std::move(commands)});
-				//proc.first->second.out << "hello\n";
-				//proc.first->second.write_buf.sync();
 				pusher_.append(&proc.first->second.read_buf, &proc.first->second.write_buf);
 				return true;
 			}
@@ -125,6 +126,17 @@ namespace parallel
 			{
 				return std::views::keys(processes_);
 			}
+			auto& open_proc_stream(const std::string& procname)
+			{
+				pusher_.lock();
+				return processes_.at(procname).wrapped_out << "open";
+			}
+			void send_out(auto& stream)
+			{
+				pusher_.unlock();
+				// stream.out.flush(); // not here due to unsynchronized
+			}
+
 		private:
 			pipe_pusher< winapi::pipe > pusher_;
 			std::map< std::string, windows_pipe_data > processes_;

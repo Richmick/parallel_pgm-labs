@@ -27,7 +27,7 @@ int mains::task2::common_commander(int argc, const char*const* argv)
 {
 	using parser_t = user_context< Manager >;
 	const std::map< std::string, void(*)(parser_t&) > commands_set = {
-				{"spawn", &add_process},
+				{"spawn", &create_process},
 				{"alive", &print_alive},
 				{"kill", &kill},
 				{"frame", &get_frame},
@@ -37,7 +37,8 @@ int mains::task2::common_commander(int argc, const char*const* argv)
 				{"show", &show_figure},
 				{"showall", &show_shapes},
 				{"showset", &show_set},
-				{"showallset", &show_sets}
+				{"showallset", &show_sets},
+				{"areaon", &create_task}
 			};
 	parser_t parser{std::cin, std::cout, std::cerr, argv[0], argv[1]};
 	std::string command;

@@ -42,9 +42,10 @@ namespace mains
 			flags.clear();
 			if (opt.erase_dispatch_key)
 			{
-				std::vector< const char* > parsed_args(args.size() - 1);
+				std::vector< const char* > parsed_args;
+				parsed_args.reserve(args.size() - 1);
 				parsed_args.push_back(args.front());
-				parsed_args.assign(args.begin() + 2, args.end());
+				parsed_args.append_range(args.subspan(2));
 				return opt.task(static_cast< int >(parsed_args.size()), parsed_args.data());
 			}
 			return opt.task(static_cast< int >(args.size()), args.data());

@@ -40,6 +40,15 @@ namespace mains
 				}
 			}
 		}
+		std::string_view operator[](std::string_view key)
+		{
+			auto it = variables.find(key);
+			if (it != variables.end())
+			{
+				return it->second;
+			}
+			return {};
+		}
 		void clear()
 		{
 			flags.clear();
