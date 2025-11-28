@@ -29,14 +29,15 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 		return 1;
 	}
 
-	square::composition pred;
+	square::composition task;
 	{
-		pred.shapes.push_back(square::circle_t{1.0f, {0.0f, 0.0f}});
+		task.shapes.push_back(square::circle_t{1.0f, {0.0f, 0.0f}});
 		square::settings set = {{{-1, -1}, {1, 1}}, 9, 100000000ULL, seed};
 		try
 		{
 			std::uint64_t entries =
-					square::count_entries(parallel::thread::std_manager< std::uint64_t >(set.nthreads - 1), set, pred);
+					square::count_entries(parallel::thread::std_manager< std::uint64_t >(set.nthreads - 1),
+						set, square::in_shape{task});
 			std::println("{:.4f}", square::square_tr(entries, set.whole_cycles, set.frame));
 		}
 		catch (const std::system_error& err)
@@ -44,7 +45,7 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 			std::println(std::cerr, "os error: {}", err.what());
 			return 2;
 		}
-		pred.shapes.resize(0);
+		task.shapes.resize(0);
 	}
 
 	std::string command;

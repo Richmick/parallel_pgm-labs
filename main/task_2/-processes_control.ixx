@@ -33,7 +33,7 @@ namespace mains::task2
 		}
 		if (lives == 0)
 		{
-			std::println(ctx.out, "noone alive");
+			std::println(ctx.out, "no one alive");
 		}
 	}
 	export template< class Manager >

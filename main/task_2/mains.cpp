@@ -31,7 +31,11 @@ int mains::task2::common_commander(int argc, const char*const* argv)
 				{"alive", &print_alive},
 				{"kill", &kill},
 				{"frame", &get_frame},
-				{"frameset", &get_set_frame}
+				{"frameset", &get_set_frame},
+				{"circle", &create_circle},
+				{"set", &create_set},
+				{"show", &show_figure},
+				{"showall", &show_shapes}
 			};
 	parser_t parser{std::cin, std::cout, std::cerr, argv[0], argv[1]};
 	std::string command;
