@@ -40,8 +40,8 @@ namespace square
 		point_t point;
 		constexpr bool operator()(const rect_t& shape)
 		{
-			return (shape.p1.x >= point.x) && (shape.p2.x <= point.x)
-				&& (shape.p1.y >= point.y) && (shape.p2.y <= point.y);
+			return (shape.p1.x <= point.x) && (shape.p2.x >= point.x)
+				&& (shape.p1.y <= point.y) && (shape.p2.y >= point.y);
 		}
 		constexpr bool operator()(const circle_t& shape)
 		{

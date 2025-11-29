@@ -8,6 +8,9 @@ import :shapes;
 
 namespace helpers
 {
+	// [{<n>}][s][|]
+	// <n> - name argument id
+	// s, | - separators
 	class shape_name_formatter
 	{
 	public:
@@ -55,31 +58,47 @@ namespace helpers
 			}
 		};
 	};
+	// [!][{<name-id>}][s][|][{<nth-format>}]...
+	// ! - hide shape type
 	template< class... Types >
-	struct common_shape_formatter:
-		protected helpers::shape_name_formatter,
+	class common_shape_formatter:
+		protected ::helpers::shape_name_formatter,
 		protected conveyer_formatter< Types... >
 	{
+	public:
 		constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx)
 		{
+			hide_shape_type = false;
+			auto it = ctx.begin();
+			if ((it != ctx.end()) && (*it == '!'))
+			{
+				hide_shape_type = true;
+				ctx.advance_to(++it);
+			}
 			ctx.advance_to(helpers::shape_name_formatter::parse(ctx));
 			return conveyer_formatter< Types... >::parse(ctx);
 		}
 		std::format_context::iterator format_with_name(const char* figure, std::format_context& ctx) const
 		{
-			auto it = std::format_to(ctx.out(), "{}", figure);
+			std::format_context::iterator it = ctx.out();
+			if (!hide_shape_type)
+			{
+				it = std::format_to(it, "{} ", figure);
+			}
 			if (has_name())
 			{
-				*(it++) = ' ';
 				ctx.advance_to(it);
 				it = helpers::shape_name_formatter::format(ctx);
+				*(it++) = ' ';
 			}
 			return it;
 		}
+	private:
+		bool hide_shape_type;
 	};
 }
 
-// [#][<0 - 3 symbols>][|float-specs]
+// [#][<0 - 3 symbols>][|][float-specs]
 // # - use braces like {0.0 0.0}
 // <0 - 3 symbols> - coordinates separator
 export template<>
@@ -139,6 +158,8 @@ private:
 	char separator_[max_separator_length + 1]{' '};
 	bool braced_ = false;
 };
+// [!][{<name-id>}][s][|][{<points-format>}][f]
+// <points-format> = [#][<0 - 3 symbols>][|][float-specs]
 export template<>
 struct std::formatter< square::rect_t >:
 	public helpers::common_shape_formatter< square::point_t >
@@ -146,12 +167,14 @@ struct std::formatter< square::rect_t >:
 	std::format_context::iterator format(const square::rect_t& r, std::format_context& ctx) const
 	{
 		auto it = format_with_name("rectangle", ctx);
-		*(it++) = ' '; ctx.advance_to(it);
 		it = std::get< 0 >(conveyer).format(r.p1, ctx);
 		*(it++) = ' '; ctx.advance_to(it);
 		return std::get< 0 >(conveyer).format(r.p2, ctx);
 	}
 };
+// [!][{<name-id>}][s][|][{<radius-format>}][{<center-format>}][f]
+// <radius-format> = [float-specs]
+// <point-format> = [#][<0 - 3 symbols>][|][float-specs]
 export template<>
 struct std::formatter< square::circle_t >:
 	public helpers::common_shape_formatter< float, square::point_t >
@@ -159,7 +182,6 @@ struct std::formatter< square::circle_t >:
 	std::format_context::iterator format(const square::circle_t& c, std::format_context& ctx) const
 	{
 		auto it = format_with_name("circle", ctx);
-		*(it++) = ' '; ctx.advance_to(it);
 		it = std::get< 0 >(conveyer).format(c.radius, ctx);
 		*(it++) = ' '; ctx.advance_to(it);
 		return std::get< 1 >(conveyer).format(c.center, ctx);

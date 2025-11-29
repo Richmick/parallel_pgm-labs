@@ -134,7 +134,6 @@ namespace parallel
 			void send_out(auto& stream)
 			{
 				pusher_.unlock();
-				// stream.out.flush(); // not here due to unsynchronized
 			}
 
 		private:

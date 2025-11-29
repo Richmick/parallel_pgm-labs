@@ -54,5 +54,5 @@ constexpr square::rect_t square::merge_frames(rect_t lhs, rect_t rhs)
 }
 constexpr float square::square_tr(std::uint64_t entries, std::uint64_t nchecks, rect_t frame)
 {
-	return 4 * square_of(frame) * entries / nchecks;
+	return square_of(frame) * entries / nchecks;
 }

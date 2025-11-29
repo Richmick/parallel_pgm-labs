@@ -24,7 +24,7 @@ void mains::task1::parse_istream(std::istream& in, square::settings& set, float&
 	{
 		throw std::runtime_error("failed to read test entries");
 	}
-	if (radius < 0.0f)
+	if (radius <= 0.0f)
 	{
 		throw std::invalid_argument("circle radius cannot be negative");
 	}
@@ -34,5 +34,5 @@ void mains::task1::parse_istream(std::istream& in, square::settings& set, float&
 	}
 
 	set.nthreads = nthreads;
-	set.frame = {{0.0f, 0.0f}, {radius, radius}};
+	set.frame = {{-radius, -radius}, {radius, radius}};
 }

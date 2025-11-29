@@ -30,12 +30,12 @@ namespace mains::task2
 	{
 		if (ctx.shapes.empty())
 		{
-			std::println(ctx.out, "no one shape");
+			std::println(ctx.out, "<no one shape>");
 			return;
 		}
 		for (const auto& i: ctx.shapes)
 		{
-			std::visit([&ctx,&name=i.first](auto f) { std::println(ctx.out, "{:{}s}", f, name); }, i.second);
+			std::visit([&ctx,&name=i.first](auto f) { std::println(ctx.out, "* {:{}s}", f, name); }, i.second);
 		}
 	}
 	export template< class Manager >
@@ -43,7 +43,7 @@ namespace mains::task2
 	{
 		std::string name;
 		ctx.in >> name;
-		std::println(ctx.out, "{}", square::get_frame::operator()(ctx.shapes.at(name)));
+		std::println(ctx.out, "{:!|{#; |.2f}f}", square::get_frame::operator()(ctx.shapes.at(name)));
 	}
 	export template< class Manager >
 	void get_set_frame(user_context< Manager >& ctx)
@@ -62,12 +62,27 @@ namespace mains::task2
 	void create_circle(user_context< Manager >& ctx)
 	{
 		std::string name;
-		float radius;
-		square::point_t center;
-		ctx.in >> name >> radius >> center.x >> center.y;
-		if (!ctx.shapes.try_emplace(name, square::circle_t{radius, center}).second)
+		square::circle_t c;
+		ctx.in >> name >> c.radius >> c.center.x >> c.center.y;
+		if (c.radius <= 0.0f)
 		{
-			std::println(ctx.err, "circle with name \"{}\" already exists", name);
+			std::println(ctx.err, "circle radius must be positive");
+			return;
+		}
+		if (!ctx.shapes.try_emplace(name, c).second)
+		{
+			std::println(ctx.err, "shape with name \"{}\" already exists", name);
+		}
+	}
+	export template< class Manager >
+	void create_rectangle(user_context< Manager >& ctx)
+	{
+		std::string name;
+		square::rect_t r;
+		ctx.in >> name >> r.p1.x >> r.p1.y >> r.p2.x >> r.p2.y;
+		if (!ctx.shapes.try_emplace(name, r).second)
+		{
+			std::println(ctx.err, "shape with name \"{}\" already exists", name);
 		}
 	}
 	export template< class Manager >
@@ -89,7 +104,7 @@ namespace mains::task2
 		}
 		if (result.empty())
 		{
-			std::println(ctx.err, "set is empty");
+			std::println(ctx.err, "<set is empty>");
 			return;
 		}
 		if (!ctx.compositions.try_emplace(std::move(name), std::move(result)).second)
@@ -113,7 +128,7 @@ namespace mains::task2
 	{
 		if (ctx.compositions.empty())
 		{
-			std::println(ctx.out, "no one set");
+			std::println(ctx.out, "<no one set>");
 			return;
 		}
 		for (const auto&[name, set]: ctx.compositions)

@@ -149,14 +149,25 @@ namespace helpers
 			{
 				throw std::format_error("formatters conveyer requires formates in {}");
 			}
+			ctx.advance_to(++it);
 			ctx.advance_to(std::get< I >(conveyer).parse(ctx));
+			it = ctx.begin();
 			if ((it == ctx.end()) || (*it != '}'))
 			{
 				throw std::format_error("not found '}'");
 			}
+			ctx.advance_to(++it);
 			if constexpr (sizeof...(Idxs) != 0)
 			{
 				apply_conveyer< Idxs... >(ctx);
+			}
+			else
+			{
+				it = ctx.begin();
+				if ((it != ctx.end()) && (*it == 'f'))
+				{
+					ctx.advance_to(++it);
+				}
 			}
 		}
 	};

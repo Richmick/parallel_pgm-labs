@@ -75,17 +75,21 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 					std::println(std::cerr, "[{}] failed to read circle", procname);
 					break;
 				}
+				if (c.radius <= 0)
+				{
+					std::println(std::cerr, "[{}] wrong circle radius", procname);
+				}
 				composition.shapes.push_back(c);
 			}
 			else if (open_tag == "rectangle")
 			{
-				square::circle_t c;
-				if (!(std::cin >> c.radius >> c.center.x >> c.center.y))
+				square::rect_t r;
+				if (!(std::cin >> r.p1.x >> r.p1.y >> r.p2.x >> r.p2.y))
 				{
 					std::println(std::cerr, "[{}] failed to read rectangle", procname);
 					break;
 				}
-				composition.shapes.push_back(c);
+				composition.shapes.push_back(r);
 			}
 			else
 			{
