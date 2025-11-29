@@ -4,6 +4,8 @@ import <exception>;
 import <iostream>;
 import <print>;
 import <span>;
+import <set>;
+import <variant>;
 import <random>;
 
 import square;

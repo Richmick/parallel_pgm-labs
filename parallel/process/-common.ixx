@@ -11,6 +11,7 @@ import <system_error>;
 import <print>;
 import <iostream>;
 import <mutex>;
+import <functional>;
 
 namespace parallel
 {

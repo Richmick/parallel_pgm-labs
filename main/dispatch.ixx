@@ -3,6 +3,9 @@ export module main.dispatch;
 import <vector>;
 import <span>;
 import <algorithm>;
+import <map>;
+import <set>;
+import <string_view>;
 
 import main.flags_parser;
 
@@ -24,8 +27,7 @@ namespace mains
 		flags_parser flags(args.subspan(1));
 		for (const dispatch_option& opt: options)
 		{
-			auto tag = flags.variables.find(opt.group);
-			if ((tag == flags.variables.end()) || (tag->second != opt.tag))
+			if (flags[opt.group] != opt.tag)
 			{
 				continue;
 			}

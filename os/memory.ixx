@@ -31,7 +31,7 @@ namespace os
 			return result;
 		}
 
-		constexpr inline offset_ptr& operator+=(size_t i) const & noexcept
+		constexpr inline offset_ptr& operator+=(size_t i) & noexcept
 		{
 			offset_ += i * sizeof(T);
 			return *this;
@@ -42,7 +42,7 @@ namespace os
 			operator+=(i);
 			return result;
 		}
-		constexpr inline offset_ptr& operator-=(size_t i) const & noexcept
+		constexpr inline offset_ptr& operator-=(size_t i) & noexcept
 		{
 			offset_ -= i * sizeof(T);
 			return *this;

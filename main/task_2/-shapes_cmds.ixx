@@ -5,6 +5,7 @@ import <iostream>;
 import <sstream>;
 import <string_view>;
 import <set>;
+import <variant>;
 import square;
 import :common;
 

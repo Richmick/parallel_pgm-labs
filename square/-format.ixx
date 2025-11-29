@@ -2,6 +2,7 @@ export module square:format;
 
 import <format>;
 import <algorithm>;
+import <tuple>;
 import format_help;
 import :shapes;
 
