@@ -32,7 +32,7 @@ namespace mains
 				std::size_t equals_sign = arg.find('=');
 				if (equals_sign != std::string_view::npos)
 				{
-					variables.try_emplace(arg.substr(0, equals_sign), arg.substr(equals_sign + 1)).second;
+					auto placeholder = variables.try_emplace(arg.substr(0, equals_sign), arg.substr(equals_sign + 1)).second;
 				}
 				else
 				{

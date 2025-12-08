@@ -31,7 +31,6 @@ namespace parallel
 			std::istream in{&read_buf};
 			std::ostream out{&write_buf};
 			char_stream_wrapper wrapped_out{out};
-			//char_stream_wrapper wrapped_out{std::cout};
 		};
 		export template< control_policy ControlPol, notify_policy NotifyPol >
 		class windows_manager
@@ -129,7 +128,7 @@ namespace parallel
 			auto& open_proc_stream(const std::string& procname)
 			{
 				pusher_.lock();
-				return processes_.at(procname).wrapped_out << "open";
+				return processes_.at(procname).wrapped_out;
 			}
 			void send_out(auto& stream)
 			{

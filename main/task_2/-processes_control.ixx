@@ -63,6 +63,7 @@ namespace mains::task2
 			return;
 		}
 		auto& stream = ctx.man.open_proc_stream(process);
+		stream << open_msg{};
 
 		stream << nthreads << ncycles; // separators must be set by possibly-wrapped stream
 		stream << comp.size();

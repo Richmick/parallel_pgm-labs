@@ -19,9 +19,9 @@ namespace mains
 
 int mains::task2::pipe(int argc, const char*const* argv)
 {
-	using namespace parallel::process;
-	return common_commander< windows_manager< control_policy::anonymous_tube,
-					notify_policy::await_thread > >(argc, argv);
+//	using namespace parallel::process;
+//	return common_commander< windows_manager< control_policy::anonymous_tube,
+//					notify_policy::await_thread > >(argc, argv);
 }
 template< class Manager >
 int mains::task2::common_commander(int argc, const char*const* argv)

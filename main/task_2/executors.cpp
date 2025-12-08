@@ -10,13 +10,46 @@ import <random>;
 
 import square;
 import parallel.thread;
+import parallel.process;
 import main.flags_parser;
+
+namespace mains::task2
+{
+	class bin_input_switch
+	{
+	public:
+		bin_input_switch(std::istream& s, bool bin):
+			stream_(s)
+		{}
+		template< class T >
+		bin_input_switch& operator>>(T& t)
+		{
+			if (binary_)
+			{
+				stream_ >> parallel::process::bin_pack< T >{t};
+				return *this;
+			}
+			stream_ >> t;
+			return *this;
+		}
+		operator bool()
+		{
+			return static_cast< bool >(stream_);
+		}
+	private:
+		std::istream& stream_;
+		bool binary_ = false;
+	};
+}
 
 int mains::task2::stdin_executor(int argc, const char*const* argv)
 {
 	mains::flags_parser flags{{argv + 1, static_cast< std::size_t >(argc - 1)}};
 	std::string_view procname = flags["tag"];
 	bool use_bin = flags.flags.contains("bin");
+	bool make_logs = flags.flags.contains("log");
+
+	bin_input_switch in{std::cin, use_bin};
 
 	if (argc < 2)
 	{
@@ -40,7 +73,7 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 	std::string open_tag;
 	bool ignore_errors = false;
 	std::println(std::clog, "[{}] initialized", procname);
-	while (std::cin >> open_tag)
+	while (in >> open_tag) // skip everything untill open tag
 	{
 		if (open_tag != "open")
 		{
@@ -54,7 +87,7 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 		ignore_errors = false;
 
 		std::size_t comp_len = 0;
-		if (!(std::cin >> set.nthreads >> set.whole_cycles >> comp_len))
+		if (!(in >> set.nthreads >> set.whole_cycles >> comp_len) || (set.nthreads <= 0) || (comp_len <= 0))
 		{
 			std::println(std::cerr, "[{}] unexpected settings in executor", procname);
 			continue;

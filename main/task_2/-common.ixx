@@ -6,6 +6,7 @@ import <string>;
 import <map>;
 import <set>;
 import square;
+import parallel.process;
 
 namespace mains::task2
 {
@@ -25,4 +26,10 @@ namespace mains::task2
 		std::map< std::string, std::string > tasks; // name:process
 		Manager man;
 	};
+	export struct open_msg
+	{};
+	export parallel::process::char_stream_wrapper& operator<<(parallel::process::char_stream_wrapper& stream, open_msg)
+	{
+		return stream << "open";
+	}
 }
