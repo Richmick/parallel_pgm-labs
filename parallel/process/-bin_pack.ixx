@@ -11,14 +11,14 @@ namespace parallel::process
 		T& wrapped;
 	};
 	export template< class T >
-	std::ostream& operator<<(std::ostream& stream, const bin_pack< T >& pack)
+	std::ostream& operator<<(std::ostream& stream, const bin_pack< T > pack)
 	{
 		const char* raw = reinterpret_cast< const char* >(&pack.wrapped);
 		stream.write(raw, sizeof(T));
 		return stream;
 	}
 	export template< class T >
-	std::istream& operator>>(std::istream& stream, bin_pack< T >& pack)
+	std::istream& operator>>(std::istream& stream, bin_pack< T > pack)
 	{
 		char* raw = reinterpret_cast< char* >(&pack.wrapped);
 		stream.read(raw, sizeof(T));

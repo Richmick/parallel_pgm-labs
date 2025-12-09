@@ -32,6 +32,14 @@ namespace mains::task2
 			stream_ >> t;
 			return *this;
 		}
+		std::istream& raw()
+		{
+			return stream_;
+		}
+		bool binary() const noexcept
+		{
+			return binary_;
+		}
 		operator bool()
 		{
 			return static_cast< bool >(stream_);
@@ -40,6 +48,10 @@ namespace mains::task2
 		std::istream& stream_;
 		bool binary_ = false;
 	};
+	bin_input_switch& operator>>(bin_input_switch& in, open_msg msg)
+	{
+		return in.operator>>(msg);
+	}
 }
 
 int mains::task2::stdin_executor(int argc, const char*const* argv)
@@ -70,22 +82,10 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 	std::mt19937_64 rnd_eng{seed};
 	square::composition composition;
 	square::settings set;
-	std::string open_tag;
-	bool ignore_errors = false;
+	std::string strbuf;
 	std::println(std::clog, "[{}] initialized", procname);
-	while (in >> open_tag) // skip everything untill open tag
+	while (in >> open_msg{})
 	{
-		if (open_tag != "open")
-		{
-			if (!ignore_errors)
-			{
-				ignore_errors = true;
-				std::println(std::cerr, "[{}] unexpected data in executor (await \"open\" signal)", procname);
-			}
-			continue;
-		}
-		ignore_errors = false;
-
 		std::size_t comp_len = 0;
 		if (!(in >> set.nthreads >> set.whole_cycles >> comp_len) || (set.nthreads <= 0) || (comp_len <= 0))
 		{
@@ -95,12 +95,12 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 		composition.shapes.reserve(comp_len);
 		for (; comp_len > 0; comp_len--)
 		{
-			if (!(std::cin >> open_tag))
+			if (!(std::cin >> strbuf))
 			{
 				std::println(std::cerr, "[{}] failed to read shape type", procname);
 				continue;
 			}
-			if (open_tag == "circle")
+			if (strbuf == "circle")
 			{
 				square::circle_t c;
 				if (!(std::cin >> c.radius >> c.center.x >> c.center.y))
@@ -114,7 +114,7 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 				}
 				composition.shapes.push_back(c);
 			}
-			else if (open_tag == "rectangle")
+			else if (strbuf == "rectangle")
 			{
 				square::rect_t r;
 				if (!(std::cin >> r.p1.x >> r.p1.y >> r.p2.x >> r.p2.y))

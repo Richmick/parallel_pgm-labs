@@ -33,9 +33,22 @@ namespace parallel
 			char_stream_wrapper wrapped_out{out};
 		};
 		export template< control_policy ControlPol, notify_policy NotifyPol >
+		struct windows_manager_traits
+		{
+			static constexpr inline bool anonymus_tube = (ControlPol == control_policy::anonymous_tube)
+					|| (ControlPol == control_policy::bin_anonymous_tube);
+			static constexpr inline bool named_tube = (ControlPol == control_policy::named_tube)
+					|| (ControlPol == control_policy::bin_named_tube);
+			static constexpr inline bool bin = (ControlPol == control_policy::bin_anonymous_tube)
+					|| (ControlPol == control_policy::bin_named_tube);
+			static constexpr inline bool tube = anonymus_tube || named_tube;
+		};
+		export template< control_policy ControlPol, notify_policy NotifyPol >
 		class windows_manager
 		{
 		public:
+			using traits = windows_manager_traits< ControlPol, NotifyPol >;
+
 			static constexpr inline std::chrono::milliseconds close_lag{100};
 
 			~windows_manager()
@@ -57,7 +70,7 @@ namespace parallel
 					return false;
 				}
 				winapi::pipe results, commands;
-				if constexpr (ControlPol == control_policy::anonymous_tube)
+				if constexpr (traits::anonymus_tube)
 				{
 					results = winapi::pipe{4096};
 					commands = winapi::pipe{4096};

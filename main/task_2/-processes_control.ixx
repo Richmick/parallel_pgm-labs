@@ -14,7 +14,8 @@ namespace mains::task2
 		std::uint64_t seed = 0;
 		ctx.in >> name >> seed;
 		if (!ctx.man.create_process(std::move(name), ctx.program,
-					std::format("{} {}-exec --tag={} {}", ctx.program, ctx.dispatch_key, name, seed)))
+					std::format("{} {}-exec --tag={} {} {}", ctx.program, ctx.dispatch_key, name,
+						(Manager::traits::bin ? "--bin" : ""), seed)))
 		{
 			std::println(ctx.err, "process with the same name already exists");
 		}

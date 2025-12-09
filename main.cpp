@@ -20,7 +20,9 @@ int main(int argc, const char*const* argv)
 				{mains::task1::algorithm, thread_main_mark, "algorithm", true},
 
 				{mains::task2::pipe, process_main_mark, "pipe", false},
-				{mains::task2::stdin_executor, process_main_mark, "pipe-exec", true}
+				{mains::task2::stdin_executor, process_main_mark, "pipe-exec", true},
+				{mains::task2::bin_pipe, process_main_mark, "binpipe", false},
+				{mains::task2::stdin_executor, process_main_mark, "binpipe-exec", true}
 			};
 
 	return mains::call_main({argv, std::size_t(argc)}, {options});

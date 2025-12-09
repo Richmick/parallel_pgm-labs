@@ -20,7 +20,9 @@ namespace parallel
 		export enum class control_policy
 		{
 			anonymous_tube,
+			bin_anonymous_tube,
 			named_tube,
+			bin_named_tube,
 			system_messages,
 			copy_request
 		};
