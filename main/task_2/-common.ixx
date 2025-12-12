@@ -1,7 +1,7 @@
 export module main.task_2:common;
 
 import <chrono>;
-import <iosfwd>;
+import <iostream>;
 import <string>;
 import <map>;
 import <set>;
@@ -24,6 +24,7 @@ namespace mains::task2
 		std::map< std::string, square::composition::shape > shapes;
 		std::map< std::string, std::set< std::string > > compositions;
 		std::map< std::string, std::string > tasks; // name:process
+		std::size_t task_counter = 0;
 		Manager man;
 	};
 	export struct open_msg
@@ -38,9 +39,19 @@ struct parallel::process::bin_pack< mains::task2::open_msg >
 namespace mains::task2
 {
 	export constexpr inline std::size_t open_msg_bin_length = 6;
-	export parallel::process::char_stream_wrapper& operator<<(parallel::process::char_stream_wrapper& stream, open_msg)
+	export parallel::process::char_stream_wrapper< std::ostream >&
+			operator<<(parallel::process::char_stream_wrapper< std::ostream >& stream, open_msg)
 	{
 		return stream << "open";
+	}
+	export parallel::process::bin_stream_wrapper< std::ostream >&
+			operator<<(parallel::process::bin_stream_wrapper< std::ostream >& stream, open_msg)
+	{
+		for (std::size_t i = 0; i < open_msg_bin_length; i++)
+		{
+			stream << char(~0);
+		}
+		return stream;
 	}
 	std::istream& operator>>(std::istream& in, open_msg)
 	{
@@ -50,7 +61,6 @@ namespace mains::task2
 		{
 			if (open_tag != "open")
 			{
-				std::println(std::cerr, "awaitopen - {}", open_tag);
 				if (!ignore_errors)
 				{
 					ignore_errors = true;

@@ -123,6 +123,7 @@ namespace parallel
 			{
 				while (pusher.continue_running_)
 				{
+					std::this_thread::yield();
 					std::lock_guard guard{pusher};
 					for (auto [read, write]: pusher.buffers_)
 					{
@@ -145,7 +146,6 @@ namespace parallel
 							std::println(std::cerr, "pusher had cought an error: {}", e.what());
 						}
 					}
-					std::this_thread::yield();
 				}
 			}
 		};

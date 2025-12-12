@@ -7,35 +7,53 @@ import :bin_pack;
 
 namespace parallel::process
 {
-	export struct char_stream_wrapper
+	export template< class S >
+	struct char_stream_wrapper
 	{
-		std::ostream& out;
-		char_stream_wrapper& operator<<(const auto& i)
+		S& stream_;
+		template< class T >
+		char_stream_wrapper& operator<<(const T& i)
+				requires(requires{ std::println(stream_, "{}", i); })
 		{
-			std::println(out, "{}", i);
+			std::println(stream_, "{}", i);
 			return *this;
 		}
 		template< class... Types >
 		char_stream_wrapper& operator<<(const std::variant< Types... >& i)
+				requires(requires(const Types&... types){ std::println(stream_, "{}", types...); })
 		{
-			std::visit([this](auto i){ std::println(out, "{}", i); }, i);
+			std::visit([this](auto i){ std::println(stream_, "{}", i); }, i);
 			return *this;
 		}
+		template< class T >
+		char_stream_wrapper& operator>>(T& i)
+				requires(requires{ stream_ >> i; })
+		{
+			stream_ >> i;
+			return *this;
+		}
+		bool operator!() { return !stream_; }
+		operator bool() { return stream_; }
 	};
-	export struct bin_stream_wrapper
+	export template< class S >
+	struct bin_stream_wrapper
 	{
-		std::ostream& out;
-		bin_stream_wrapper& operator<<(const auto& i)
+		S& stream_;
+		template< class T >
+		bin_stream_wrapper& operator<<(const T& i)
+				requires(requires{ stream_ << bin_pack{i}; })
 		{
-			out << bin_pack{i};
+			stream_ << bin_pack{i};
 			return *this;
 		}
-		template< class... Types >
-		bin_stream_wrapper& operator<<(const std::variant< Types... >& i)
+		template< class T >
+		bin_stream_wrapper& operator>>(T& i)
+			requires(requires{ stream_ >> i; })
 		{
-			operator<<(i.index());
-			std::visit([this](auto i){ operator<<(i); }, i);
+			stream_ >> bin_pack{i};
 			return *this;
 		}
+		bool operator!() { return !stream_; }
+		operator bool() { return stream_; }
 	};
 }

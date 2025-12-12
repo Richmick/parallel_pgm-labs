@@ -24,14 +24,6 @@ namespace parallel
 {
 	namespace process
 	{
-		export struct windows_pipe_data
-		{
-			winapi::unique_handle process_handle;
-			pipe_buf< winapi::pipe > read_buf, write_buf;
-			std::istream in{&read_buf};
-			std::ostream out{&write_buf};
-			char_stream_wrapper wrapped_out{out};
-		};
 		export template< control_policy ControlPol, notify_policy NotifyPol >
 		struct windows_manager_traits
 		{
@@ -42,6 +34,24 @@ namespace parallel
 			static constexpr inline bool bin = (ControlPol == control_policy::bin_anonymous_tube)
 					|| (ControlPol == control_policy::bin_named_tube);
 			static constexpr inline bool tube = anonymus_tube || named_tube;
+		};
+		export template< control_policy ControlPol, notify_policy NotifyPol >
+		struct windows_pipe_data
+		{
+			using traits = windows_manager_traits< ControlPol, NotifyPol >;
+			using ostream_wrapper = std::conditional_t< traits::bin,
+						bin_stream_wrapper< std::ostream >,
+						char_stream_wrapper< std::ostream > >;
+			using istream_wrapper = std::conditional_t< traits::bin,
+						bin_stream_wrapper< std::istream >,
+						char_stream_wrapper< std::istream > >;
+
+			winapi::unique_handle process_handle;
+			pipe_buf< winapi::pipe > read_buf, write_buf;
+			std::istream in{&read_buf};
+			std::ostream out{&write_buf};
+			ostream_wrapper wrapped_out{out};
+			istream_wrapper wrapped_in{in};
 		};
 		export template< control_policy ControlPol, notify_policy NotifyPol >
 		class windows_manager
@@ -147,10 +157,19 @@ namespace parallel
 			{
 				pusher_.unlock();
 			}
+			auto& get_proc_in(const std::string& procname)
+			{
+				pusher_.lock();
+				return processes_.at(procname).wrapped_in;
+			}
+			void release_proc_in(auto& stream)
+			{
+				pusher_.unlock();
+			}
 
 		private:
 			pipe_pusher< winapi::pipe > pusher_;
-			std::map< std::string, windows_pipe_data > processes_;
+			std::map< std::string, windows_pipe_data< ControlPol, NotifyPol > > processes_;
 		};
 	}
 }

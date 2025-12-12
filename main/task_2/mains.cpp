@@ -17,6 +17,7 @@ namespace mains
 	}
 }
 
+#ifdef _WIN32
 int mains::task2::pipe(int argc, const char*const* argv)
 {
 	using namespace parallel::process;
@@ -29,6 +30,20 @@ int mains::task2::bin_pipe(int argc, const char*const* argv)
 	return common_commander< windows_manager< control_policy::bin_anonymous_tube,
 					notify_policy::await_thread > >(argc, argv);
 }
+#endif
+#ifdef __linux__
+int mains::task2::pipe(int argc, const char* const* argv)
+{
+	std::println("doesn't implemented on linux");
+	return 3;
+}
+int mains::task2::bin_pipe(int argc, const char* const* argv)
+{
+	std::println("doesn't implemented on linux");
+	return 3;
+}
+#endif
+
 template< class Manager >
 int mains::task2::common_commander(int argc, const char*const* argv)
 {
@@ -46,7 +61,8 @@ int mains::task2::common_commander(int argc, const char*const* argv)
 				{"showall", &show_shapes},
 				{"showset", &show_set},
 				{"showallset", &show_sets},
-				{"areaon", &create_task}
+				{"areaon", &create_task},
+				{"wait", &await_task}
 			};
 	parser_t parser{std::cin, std::cout, std::cerr, argv[0], argv[1]};
 	std::string command;

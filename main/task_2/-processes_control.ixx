@@ -66,13 +66,31 @@ namespace mains::task2
 		auto& stream = ctx.man.open_proc_stream(process);
 		stream << open_msg{};
 
-		stream << nthreads << ncycles; // separators must be set by possibly-wrapped stream
-		stream << comp.size();
+		stream << ctx.task_counter++ << nthreads << ncycles;
+		stream << static_cast< std::size_t >(comp.size());
 		for (const std::string& i: comp)
 		{
 			stream << ctx.shapes.at(i);
 		}
 
 		ctx.man.send_out(stream);
+	}
+	export template< class Manager >
+	void await_task(user_context< Manager >& ctx)
+	{
+		std::string taskname;
+		ctx.in >> taskname;
+		auto& in = ctx.man.get_proc_in(ctx.tasks.at(taskname));
+		std::size_t id = 0;
+		double res = 0.0;
+		std::uint64_t dur;
+		if (!(in >> id >> res >> dur))
+		{
+			std::println(ctx.err, "failed to read status");
+			ctx.man.release_proc_in(in);
+			return;
+		}
+		ctx.man.release_proc_in(in);
+		std::println(ctx.out, "\"{}\" returned {} after {}ms", taskname, res, dur / 1'000'000ULL);
 	}
 }

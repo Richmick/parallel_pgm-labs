@@ -7,8 +7,10 @@ import <span>;
 import <set>;
 import <variant>;
 import <random>;
+import <cassert>;
 
 import square;
+import timer;
 import parallel.thread;
 import parallel.process;
 import main.flags_parser;
@@ -19,7 +21,8 @@ namespace mains::task2
 	{
 	public:
 		bin_input_switch(std::istream& s, bool bin):
-			stream_(s)
+			stream_(s),
+			binary_(bin)
 		{}
 		template< class T >
 		bin_input_switch& operator>>(T& t)
@@ -29,7 +32,14 @@ namespace mains::task2
 				stream_ >> parallel::process::bin_pack< T >{t};
 				return *this;
 			}
-			stream_ >> t;
+			if constexpr (requires(std::istream& in, T& t) {in >> t;})
+			{
+				stream_ >> t;
+			}
+			else
+			{
+				assert(false);
+			}
 			return *this;
 		}
 		std::istream& raw()
@@ -78,16 +88,18 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 		std::println(std::cerr, "[{}] executor failed to parse seed: {}", procname, e.what());
 		return 1;
 	}
+	std::println(std::clog, "[{}] initialized", procname);
 
 	std::mt19937_64 rnd_eng{seed};
 	square::composition composition;
 	square::settings set;
 	std::string strbuf;
-	std::println(std::clog, "[{}] initialized", procname);
+	std::size_t taskid = 0;
 	while (in >> open_msg{})
 	{
 		std::size_t comp_len = 0;
-		if (!(in >> set.nthreads >> set.whole_cycles >> comp_len) || (set.nthreads <= 0) || (comp_len <= 0))
+		if (!(in >> taskid >> set.nthreads >> set.whole_cycles >> comp_len)
+					|| (set.nthreads <= 0) || (comp_len <= 0))
 		{
 			std::println(std::cerr, "[{}] unexpected settings in executor", procname);
 			continue;
@@ -95,10 +107,22 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 		composition.shapes.reserve(comp_len);
 		for (; comp_len > 0; comp_len--)
 		{
+			if (use_bin)
+			{
+				square::composition::shape input;
+				if (!(in >> input) || (input.index() >= std::variant_size_v< decltype(input) >))
+				{
+					std::println(std::cerr, "[{}] failed to read shape", procname);
+					break;
+				}
+				std::visit([](auto f) { std::println(std::cerr, "* {}", f); }, input);
+				composition.shapes.push_back(input);
+				continue;
+			}
 			if (!(std::cin >> strbuf))
 			{
 				std::println(std::cerr, "[{}] failed to read shape type", procname);
-				continue;
+				break;
 			}
 			if (strbuf == "circle")
 			{
@@ -111,6 +135,7 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 				if (c.radius <= 0)
 				{
 					std::println(std::cerr, "[{}] wrong circle radius", procname);
+					break;
 				}
 				composition.shapes.push_back(c);
 			}
@@ -137,17 +162,29 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 
 		set.frame = square::get_frame::operator()(composition);
 		set.seed = rnd_eng();
-		std::println(std::clog, "[{}] start calculation", procname);
+		std::println(std::clog, "[{}] start calculation #{}", procname, taskid);
 		try
 		{
+			chrono::timer timer;
 			std::uint64_t entries =
 					square::count_entries(parallel::thread::std_manager< std::uint64_t >(set.nthreads - 1),
 						set, square::in_shape{composition});
-			std::println(std::cerr, "{:.4f}", square::square_tr(entries, set.whole_cycles, set.frame));
+			double result = square::square_tr(entries, set.whole_cycles, set.frame);
+			std::uint64_t duration = timer.time_since_epoch().count();
+			std::println(std::cerr, "[{}] calculation #{} finished", procname, taskid);
+			if (use_bin)
+			{
+				using parallel::process::bin_pack;
+				std::cout << bin_pack{taskid} << bin_pack{result} << bin_pack{duration};
+			}
+			else
+			{
+				std::cout << taskid << ' ' << result << ' ' << duration << '\n';
+			}
 		}
 		catch (const std::system_error& err)
 		{
-			std::println(std::cerr, "os error: {}", err.what());
+			std::println(std::cerr, "[{}] os error: {}", procname, err.what());
 			return 2;
 		}
 		composition.shapes.resize(0);
