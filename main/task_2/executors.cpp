@@ -69,7 +69,7 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 	mains::flags_parser flags{{argv + 1, static_cast< std::size_t >(argc - 1)}};
 	std::string_view procname = flags["tag"];
 	bool use_bin = flags.flags.contains("bin");
-	bool make_logs = flags.flags.contains("log");
+	// bool make_logs = flags.flags.contains("log");
 
 	bin_input_switch in{std::cin, use_bin};
 
@@ -115,7 +115,6 @@ int mains::task2::stdin_executor(int argc, const char*const* argv)
 					std::println(std::cerr, "[{}] failed to read shape", procname);
 					break;
 				}
-				std::visit([](auto f) { std::println(std::cerr, "* {}", f); }, input);
 				composition.shapes.push_back(input);
 				continue;
 			}

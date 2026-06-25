@@ -18,6 +18,7 @@ import <chrono>;
 
 import os.winapi;
 import :common;
+import :pipe_pusher;
 import :streams;
 
 namespace parallel

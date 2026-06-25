@@ -32,8 +32,13 @@ namespace parallel::process
 			stream_ >> i;
 			return *this;
 		}
+		std::streamsize read_available(char& c)
+				requires(requires{ stream_.readsome(&c, 1); })
+		{
+			return stream_.readsome(&c, 1);
+		}
 		bool operator!() { return !stream_; }
-		operator bool() { return stream_; }
+		operator bool() { return static_cast< bool >(stream_); }
 	};
 	export template< class S >
 	struct bin_stream_wrapper
@@ -48,12 +53,17 @@ namespace parallel::process
 		}
 		template< class T >
 		bin_stream_wrapper& operator>>(T& i)
-			requires(requires{ stream_ >> i; })
+				requires(requires{ stream_ >> i; })
 		{
 			stream_ >> bin_pack{i};
 			return *this;
 		}
+		std::streamsize read_available(char& c)
+				requires(requires{ stream_.readsome(&c, 1); })
+		{
+			return stream_.readsome(&c, 1);
+		}
 		bool operator!() { return !stream_; }
-		operator bool() { return stream_; }
+		operator bool() { return static_cast< bool >(stream_); }
 	};
 }
